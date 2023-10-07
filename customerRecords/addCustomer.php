@@ -1,6 +1,6 @@
 <?php
 // Start the session
-session_start();
+session_start(); // s
 
 include_once('../db_conn.php');
 // Check if the user is logged in
