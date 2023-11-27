@@ -1,6 +1,6 @@
 <?php
 // Start the session
-session_start(); // s
+session_start();
 
 include_once('../db_conn.php');
 // Check if the user is logged in
@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_type'])) {
 
 <?php include "../db_conn.php" ?>
 <?php include '../includes/header.php' ?>
-
+n
     <?php include '../includes/navbar.php' ?>
     <?php include '../includes/sidebar.php' ?>
 
@@ -154,7 +154,7 @@ if (!isset($_SESSION['user_type'])) {
 
 
 <script>
-    $(document).ready(function(){
+$(document).ready(function(){
         $("#region").on('change',function(){
             var regionId = $(this).val();
             if(regionId){

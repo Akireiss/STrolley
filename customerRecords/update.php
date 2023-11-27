@@ -3,6 +3,35 @@
 session_start();
 
 include_once('../db_conn.php');
+
+function auditTrail($event_type, $details)
+{
+    // Replace 'your_database_credentials' with your actual database info
+    $con = new mysqli('localhost', 'root', '', 'STROLLEY');
+
+    if ($con->connect_error) {
+        die("Connection failed: " . $con->connect_error);
+    }
+    date_default_timezone_set('Asia/Manila');
+    $timestamp = date("Y-m-d H:i:s");
+    $id = isset($_SESSION['id']) ? $_SESSION['id'] : 0; // Replace 0 with a default user ID if necessary
+    $user_type = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : 'Unknown'; // Replace 'Unknown' with a default user type if necessary
+
+    $insertLogQuery = "INSERT INTO audit_log (timestamp, event_type, id, user_type, details) VALUES (?, ?, ?, ?, ?)";
+    $auditStmt = $con->prepare($insertLogQuery);
+    $auditStmt->bind_param("sssss", $timestamp, $event_type, $id, $user_type, $details);
+
+    if ($auditStmt->execute()) {
+        // Audit trail record inserted successfully
+
+    } else {
+        // Error inserting audit trail record
+    }
+
+    $auditStmt->close();
+    $con->close();
+}
+
 // Check if the user is logged in
 if (!isset($_SESSION['user_type'])) {
     // User is not logged in, redirect to the login page
@@ -38,7 +67,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $middle_name = mysqli_real_escape_string($con, $_POST['middle_name']);
     $last_name = mysqli_real_escape_string($con, $_POST['last_name']);
     $suffix = mysqli_real_escape_string($con, $_POST['suffix']);
-    $region_id = mysqli_real_escape_string($con, $_POST['region_id']);
     $province_id = mysqli_real_escape_string($con, $_POST['province_id']);
     $municipality_id = mysqli_real_escape_string($con, $_POST['municipality_id']);
     $barangay_id = mysqli_real_escape_string($con, $_POST['barangay_id']);
@@ -51,7 +79,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         middle_name = ?,
         last_name = ?,
         suffix = ?,
-        region_id = ?,
         province_id = ?,
         municipality_id = ?,
         barangay_id = ?,
@@ -60,9 +87,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         WHERE id = ?";
 
     $stmt = $con->prepare($updateSql);
-    $stmt->bind_param("ssssssssssi", $first_name, $middle_name, $last_name, $suffix, $region_id, $province_id, $municipality_id, $barangay_id, $sex, $civil_status, $id);
+    $stmt->bind_param("sssssssssi", $first_name, $middle_name, $last_name, $suffix, $province_id, $municipality_id, $barangay_id, $sex, $civil_status, $id);
 
     if ($stmt->execute()) {
+        $event_type = "Update Customer"; // Change this to the appropriate event type
+        $logDetails = "Updated Customer ID: $id";
+        auditTrail($event_type, $logDetails);
         $_SESSION['success'] = "Customer details updated successfully";
         header("Location: tbl_customers.php");
         exit;
@@ -99,14 +129,12 @@ $barangayStmt->bind_param("s", $selectedMunicipalityCode);
 $barangayStmt->execute();
 $barangayResult = $barangayStmt->get_result();
 
-// Fetch the data for the Barangay dropdown based on the selected barangay
 $selectedBarangayCode = $customer['barangay_id']; // Assuming you have this value from the customer record
 $barangaySql = "SELECT brgyCode, brgyDesc FROM barangay WHERE citymunCode = ?";
 $barangayStmt = $con->prepare($barangaySql);
-$barangayStmt->bind_param("s", $selectedMunicipalityCode);
+$barangayStmt->bind_param("s", $selectedMunicipalityCode); // Use the same selectedMunicipalityCode
 $barangayStmt->execute();
 $barangayResult = $barangayStmt->get_result();
-
 
 include '../includes/header.php';
 include '../includes/navbar.php';
@@ -124,7 +152,7 @@ include '../includes/sidebar.php';
                     <!-- First Name Field -->
                     <div class="col-md-3 position-relative">
                         <label class="form-label">First Name<font color="red">*</font></label>
-                        <input type="text" class="form-control" name="first_name" value="<?php echo ($customer['first_name']); ?>" required autofocus="autofocus">
+                        <input type="text" class="form-control" name="first_name" value="<?php echo htmlspecialchars($customer['first_name']); ?>" required autofocus="autofocus">
                         <div class="invalid-tooltip">
                             First name field is required.
                         </div>
@@ -133,13 +161,13 @@ include '../includes/sidebar.php';
                     <!-- Middle Name Field -->
                     <div class="col-md-3 position-relative">
                         <label class="form-label">Middle Name</label>
-                        <input type="text" class="form-control" value="<?php echo ($customer['middle_name']); ?>" name="middle_name">
+                        <input type="text" class="form-control" value="<?php echo htmlspecialchars($customer['middle_name']); ?>" name="middle_name">
                     </div>
 
                     <!-- Last Name Field -->
                     <div class="col-md-3 position-relative">
                         <label class="form-label">Last Name<font color="red">*</font></label>
-                        <input type="text" class="form-control" name="last_name" value="<?php echo ($customer['last_name']); ?>" required>
+                        <input type="text" class="form-control" name="last_name" value="<?php echo htmlspecialchars($customer['last_name']); ?>" required>
                         <div class="invalid-tooltip">
                             Last name field is required.
                         </div>
@@ -148,7 +176,7 @@ include '../includes/sidebar.php';
                     <!-- Suffix Field -->
                     <div class="col-md-3 position-relative">
                         <label class="form-label">Suffix</label>
-                        <input type="text" class="form-control" value="<?php echo ($customer['suffix']); ?>" name="suffix">
+                        <input type="text" class="form-control" value="<?php echo htmlspecialchars($customer['suffix']); ?>" name="suffix">
                     </div>
 
                     <!-- Region Field -->
@@ -159,7 +187,7 @@ include '../includes/sidebar.php';
                             <?php
                             while ($row = mysqli_fetch_array($regionsResult)) {
                                 $selected = ($row['regCode'] == $selectedRegionCode) ? 'selected' : '';
-                                echo '<option value="' . $row['regCode'] . '" ' . $selected . '>' . $row['regDesc'] . '</option>';
+                                echo '<option value="' . $row['regCode'] . '" ' . $selected . '>' . htmlspecialchars($row['regDesc']) . '</option>';
                             }
                             ?>
                         </select>
@@ -173,7 +201,7 @@ include '../includes/sidebar.php';
                             <?php
                             while ($row = $provinceResult->fetch_assoc()) {
                                 $selected = ($row['provCode'] == $selectedProvinceCode) ? 'selected' : '';
-                                echo '<option value="' . $row['provCode'] . '" ' . $selected . '>' . $row['provDesc'] . '</option>';
+                                echo '<option value="' . $row['provCode'] . '" ' . $selected . '>' . htmlspecialchars($row['provDesc']) . '</option>';
                             }
                             ?>
                         </select>
@@ -187,7 +215,7 @@ include '../includes/sidebar.php';
                             <?php
                             while ($row = $municipalityResult->fetch_assoc()) {
                                 $selected = ($row['citymunCode'] == $selectedMunicipalityCode) ? 'selected' : '';
-                                echo '<option value="' . $row['citymunCode'] . '" ' . $selected . '>' . $row['citymunDesc'] . '</option>';
+                                echo '<option value="' . $row['citymunCode'] . '" ' . $selected . '>' . htmlspecialchars($row['citymunDesc']) . '</option>';
                             }
                             ?>
                         </select>
@@ -202,14 +230,12 @@ include '../includes/sidebar.php';
         while ($row = $barangayResult->fetch_assoc()) {
             $brgyCode = $row['brgyCode'];
             $brgyDesc = $row['brgyDesc'];
-            $selected = ($row['brgyCode'] == $selectedBarangayCode) ? 'selected' : '';
-            echo '<option value="' . $row['brgyCode'] . '" ' . $selected . '>' . $row['brgyDesc'] . '</option>';
+            $selected = ($brgyCode == $selectedBarangayCode) ? 'selected' : '';
+            echo '<option value="' . $brgyCode . '" ' . $selected . '>' . htmlspecialchars($brgyDesc) . '</option>';
         }
-        
         ?>
     </select>
 </div>
-
 
                     <!-- Sex Field -->
                     <div class="col-md-6 position-relative">

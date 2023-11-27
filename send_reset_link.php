@@ -3,6 +3,32 @@ session_start(); // Start the session
 
 require 'db_conn.php';
 
+function auditTrail($event_type, $details) {
+    // You should replace 'your_database_credentials' with your actual database info
+    $con = new mysqli('localhost', 'root', '', 'STROLLEY');
+
+    if ($con->connect_error) {
+        die("Connection failed: " . $con->connect_error);
+    }
+
+    $timestamp = date("Y-m-d H:i:s");
+    $id = isset($_SESSION['id']) ? $_SESSION['id'] : 0; // Replace 0 with a default user ID if necessary
+    $user_type = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : 'Unknown'; // Replace 'Unknown' with a default user type if necessary
+
+    $insertLogQuery = "INSERT INTO audit_log (timestamp, event_type, id, user_type, details) VALUES (?, ?, ?, ?, ?)";
+    $auditStmt = $con->prepare($insertLogQuery);
+    $auditStmt->bind_param("sssss", $timestamp, $event_type, $id, $user_type, $details);
+
+    if ($auditStmt->execute()) {
+        // Audit trail record inserted successfully
+    } else {
+        // Error inserting audit trail record
+    }
+
+    $auditStmt->close();
+    $con->close();
+}
+
 // Include the necessary PHPMailer namespaces
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
@@ -41,13 +67,13 @@ if (isset($_POST["email"])) {
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com'; // SMTP server address
             $mail->SMTPAuth = true;
-            $mail->Username = 'valdeznicole104@gmail.com'; // Your SMTP username
+            $mail->Username = 'gerixa16@gmail.com'; // Your SMTP username
             $mail->Password = 'eojjrfsplnpxefcb'; // Use an environment variable here
             $mail->SMTPSecure = 'tls';
             $mail->Port = 587;
 
             // Set sender and recipient
-            $mail->setFrom('valdeznicole104@gmail.com', 'Gerix Ann V. Antolin'); // Sender's email and name
+            $mail->setFrom('gerixa16@gmail.com', 'Gerix Ann V. Antolin'); // Sender's email and name
             $mail->addAddress($email, $users["username"]); // Recipient's email and name
 
             // Email subject and content
@@ -70,6 +96,9 @@ if (isset($_POST["email"])) {
             header("Location: password_reset_confirmation.php");
             exit();
         } catch (Exception $e) {
+            $event_type = "Send Reset Link"; // Change this to the appropriate event type
+            $logDetails = "Forgot Password";
+            auditTrail($event_type, $logDetails);
             echo "<script>alert('Email could not be sent. Error: " . $e->getMessage() . "');</script>";
         }
     } else {

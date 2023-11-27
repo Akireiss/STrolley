@@ -32,12 +32,12 @@ $sql = "SELECT c.id,
                CONCAT(b.brgyDesc, ', ', m.citymunDesc, ', ', p.provDesc) AS address,
                c.sex,
                c.civil_status,
-               rc.rfid_card_id  -- Fetch rfid_card_id from rfid_cards table
+               rc.rfid_card_id
         FROM customer AS c
         LEFT JOIN barangay AS b ON c.barangay_id = b.brgyCode
         LEFT JOIN municipality AS m ON c.municipality_id = m.citymunCode
         LEFT JOIN province AS p ON c.province_id = p.provCode
-        LEFT JOIN rfid_cards AS rc ON c.id = rc.customer_id  -- Join with rfid_cards table
+        LEFT JOIN rfid_cards AS rc ON c.id = rc.customer_id
         WHERE c.id = '$id'";
 
 
@@ -51,73 +51,56 @@ include '../includes/sidebar.php';
 
 <main id="main" class="main">
     <section class="section dashboard">
-    <div class="card">
-      
-        <div class="card-body">
-            <div class="id-card">
-                <div class="customer-info">
-                    <div class="info-item mt-5">
-                        <?php echo $customer['full_name']; ?>
-                    </div>
-                    <div class="info-item" style="margin-top: -10px;">
-                        <?php echo $customer['address']; ?>
-                    </div>
-                 
-                    <div class="info-item text-end" style="margin-top: 90px;">
-                    <?php echo $customer['rfid_card_id']; ?>
-                    </div>
-                </div>
+        <div class="container">
+            <div class="card">
+                <div class="card-body">
+        <!-- <div class="header">
+            <h1>Customer Details</h1>
+        </div> -->
+        <div class="rfid-card">
+            <div class="customer-info">
+              <?php echo $customer['full_name']; ?>
             </div>
+            <div class="customer-info">
+                 <?php echo $customer['address']; ?>
+            </div>
+            <form id="rfidForm" action="process_scan.php" method="post">
+                <input type="hidden" name="rfid_card_id" value="<?php echo $customer['rfid_card_id']; ?>">
+            </form>
             
         </div>
-    </div>
-    <div class="back-button">
-                <a href="../customerRecords/tbl_customers.php" class="btn btn-primary">Back</a>
+
+        <div class="back-button">
+            <a href="../customerRecords/tbl_customers.php" class="btn btn-primary">Back</a>
+        </div>
+        </div>
             </div>
+        </div>
     </section>
 </main>
 <style>
-    /* styles.css */
+    body {
+        background-color: #f8f9fa;
+    }
 
-.card {
-    width: 500px;
-    height: 250px;
-    margin: 20px auto;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-}
+    .rfid-card {
+        height: 200px;
+        max-width: 400px;
+        margin: 50px auto;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
 
-.card-header {
-    background-color: #007bff;
-    color: #fff;
-    padding: 10px;
-    text-align: center;
-}
+    .id-card-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
 
-.card-body {
-    padding: 20px;
-}
-
-.id-card {
-    display: flex;
-    align-items: center;
-}
-
-
-.customer-info {
-    flex-grow: 1;
-}
-
-.info-item {
-    margin-bottom: 10px;
-}
-
-.back-button {
-    text-align: center;
-    margin-top: 20px;
-}
-
-    </style>
-
+    .customer-info {
+        margin-bottom: 15px;
+    }
+</style>
 <?php include '../includes/footer.php'; ?>

@@ -56,7 +56,7 @@ include '../includes/sidebar.php';
                 <tbody>
                     <?php while ($productRow = mysqli_fetch_assoc($result)) { ?>
                         <tr>
-                            <td><?php echo $productRow["item_description"]; ?></td>
+                            <td><?php echo $productRow["item"]; ?></td>
                             <!-- Add more table data columns to display additional product details -->
                         </tr>
                     <?php } ?>

@@ -1,3 +1,33 @@
+<?php
+session_start();
+
+function auditTrail($event_type, $details) {
+    // You should replace 'your_database_credentials' with your actual database info
+    $con = new mysqli('localhost', 'root', '', 'STROLLEY');
+
+    if ($con->connect_error) {
+        die("Connection failed: " . $con->connect_error);
+    }
+
+    $timestamp = date("Y-m-d H:i:s");
+    $id = isset($_SESSION['id']) ? $_SESSION['id'] : 0; // Replace 0 with a default user ID if necessary
+    $user_type = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : 'Unknown'; // Replace 'Unknown' with a default user type if necessary
+
+    $insertLogQuery = "INSERT INTO audit_log (timestamp, event_type, id, user_type, details) VALUES (?, ?, ?, ?, ?)";
+    $auditStmt = $con->prepare($insertLogQuery);
+    $auditStmt->bind_param("sssss", $timestamp, $event_type, $id, $user_type, $details);
+
+    if ($auditStmt->execute()) {
+        // Audit trail record inserted successfully
+    } else {
+        // Error inserting audit trail record
+    }
+
+    $auditStmt->close();
+    $con->close();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -32,7 +62,7 @@
         }
         
         .card-header {
-            background-color: #fcb768;
+            background-color: orange;
             color: #121211;
             font-weight: bold;
             text-align: center;
@@ -56,7 +86,7 @@
         }
         
         .btn-primary {
-            background-color: #fcb768;
+            background-color: orange;
             border: none;
             border-radius: 4px;
             color: #fff;
@@ -65,7 +95,7 @@
         }
         
         .btn-primary:hover {
-            background-color: #0056b3;
+            background-color: orange;
         }
         
         .mt-5 {
@@ -100,6 +130,9 @@
     <script>
         <?php
         if (isset($_POST["email"]) && ($result && mysqli_num_rows($result) === 0)) {
+            $event_type = "Forgot Password"; // Change this to the appropriate event type
+            $logDetails = "Forgot Password";
+            auditTrail($event_type, $logDetails);
             echo "alert('Email not found. Please try again.');";
         }
         ?>

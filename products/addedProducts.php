@@ -1,59 +1,67 @@
 <?php
-
-use Picqer\Barcode\BarcodeGeneratorPNG;
 session_start();
 include "../db_conn.php";
 
-// Function to generate and save barcode image
-function generateBarcodeImage($barcode) {
-    require_once 'vendor/autoload.php'; // Include the library
-
-    // Set up the barcode generator
-    $barcodeGenerator = new BarcodeGeneratorPNG();
-
-    // Generate the barcode image
-    $barcodeImage = $barcodeGenerator->getBarcode($barcode, $barcodeGenerator::TYPE_CODE_128, 2, 60);
-
-    // Define the directory where you want to save the barcode images
-    $barcodeDirectory = 'products/images/';
-
-    // Ensure the directory exists, create it if necessary
-    if (!file_exists($barcodeDirectory)) {
-        mkdir($barcodeDirectory, 0777, true);
+function auditTrail($event_type, $details) {
+    $con = new mysqli('localhost', 'root', '', 'STROLLEY');
+    if ($con->connect_error) {
+        die("Connection failed: " . $con->connect_error);
     }
 
-    // Generate a unique filename for the barcode image
-    $filename = $barcode . '.png';
+    date_default_timezone_set('Asia/Manila');
+    $timestamp = date("Y-m-d H:i:s");
+    $id = isset($_SESSION['id']) ? $_SESSION['id'] : 0;
+    $user_type = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : 'Unknown';
 
-    // Save the barcode image to the directory
-    $barcodeImagePath = $barcodeDirectory . $filename;
-    file_put_contents($barcodeImagePath, $barcodeImage);
+    $insertLogQuery = "INSERT INTO audit_log (timestamp, event_type, id, user_type, details) VALUES (?, ?, ?, ?, ?)";
+    $auditStmt = $con->prepare($insertLogQuery);
+    $auditStmt->bind_param("sssss", $timestamp, $event_type, $id, $user_type, $details);
 
-    // Return the file path of the saved barcode image
-    return $barcodeImagePath;
+    if (!$auditStmt->execute()) {
+        // Handle error - log or display an error message
+    }
+
+    $auditStmt->close();
+    $con->close();
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $item_description = $_POST['item_description'];
-    $unit_price = $_POST['unit_price'];
-    $quantity = $_POST['quantity'];
-    $weight = $_POST['weight'];
-    $category_id = $_POST['category_id'];   
+    $item = $_POST['item'];
+    $unit_price = floatval($_POST['unit_price']);
+    $quantity = intval($_POST['quantity']);
+    $measurements = $_POST['measurements'];
+    $barcode = $_POST['barcode'];
+    $weight = floatval($_POST['weight']);
+    $category_id = intval($_POST['category_id']);
+    $total_cost = floatval($_POST['total_cost']);
+
+    $address = isset($_POST['address']) ? $_POST['address'] : '';
+
+    // Format decimal values with two decimal places
+    $unit_price = number_format($unit_price, 2, '.', '');
+    $weight = number_format($weight, 2, '.', '');
+    $total_cost = number_format($total_cost, 2, '.', '');
+
+    // Check if the generated barcode already exists in the database
+    $checkBarcodeSql = "SELECT barcode FROM products WHERE barcode = ?";
+    $checkBarcodeStmt = $con->prepare($checkBarcodeSql);
+    $checkBarcodeStmt->bind_param("s", $barcode);
+    $checkBarcodeStmt->execute();
+    $checkBarcodeResult = $checkBarcodeStmt->get_result();
 
     // Check if an image was uploaded
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $image = $_FILES['image']['tmp_name'];
+    // if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+    //     $image = $_FILES['image']['tmp_name'];
 
-        // Define the target directory where images will be stored
-        $targetDirectory = '../images/';
-        $target = $targetDirectory . basename($_FILES["image"]["name"]);
-        move_uploaded_file($_FILES['image']['tmp_name'], $target);
-    } else {
-        // Error moving image
-        $_SESSION['error'] = "Error moving image to the target directory.";
-        header("Location: ../products/addProduct.php");
-        exit();
-    }
+    //     // Define the target directory where images will be stored
+    //     $targetDirectory = '../images/';
+    //     $target = $targetDirectory . basename($_FILES["image"]["name"]);
+    //     move_uploaded_file($_FILES['image']['tmp_name'], $target);
+    // } else {
+    //     $_SESSION['error'] = "Error moving image to the target directory.";
+    //     header("Location: ../products/addProduct.php");
+    //     exit();
+    // }
 
     // Validate the category ID before proceeding
     $categorySql = "SELECT * FROM categories WHERE category_id = ?";
@@ -68,36 +76,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    // Generate a barcode for the product
-    $barcode = strtoupper(md5(uniqid(rand(), true))); // Generate a unique identifier as a barcode
+    // Insert into products table
+    $insertProductSql = "INSERT INTO products (item, unit_price, quantity, measurements, weight, total_cost, category_id, barcode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $productStmt = $con->prepare($insertProductSql);
 
-    // Save the barcode as an image using the function
-    $barcodeImage = generateBarcodeImage($barcode);
-
-    // Insert the data into the database along with the barcode image path
-    $insertSql = "INSERT INTO products (item_description, unit_price, quantity, weight, category_id, image, barcode) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $con->prepare($insertSql);
-
-    if (!$stmt) {
+    if (!$productStmt) {
         echo "Prepare failed: (" . $con->errno . ") " . $con->error;
         exit();
     }
 
-    $stmt->bind_param("sidsiss", $item_description, $unit_price, $quantity, $weight, $category_id, $target, $barcodeImage);
+    $productStmt->bind_param("sddsdsis", $item, $unit_price, $quantity, $measurements, $weight, $total_cost, $category_id, $barcode);  
 
-    if ($stmt->execute()) {
-        $stmt->close();
-        $con->close();
-        $_SESSION['success'] = "Product Added successfully.";
-        header("Location: ../products/tbl_products.php");
-        exit();
+
+    // $target,
+
+    if ($productStmt->execute()) {
+        // Get the product_id of the inserted product
+        $productId = $productStmt->insert_id;
+
+        // Insert into inventory table
+        $inventorySql = "INSERT INTO inventory (product_id, address) VALUES (?, ?)";
+        $inventoryStmt = $con->prepare($inventorySql);
+
+        $inventoryStmt->bind_param("is", $productId, $address);
+
+        if ($inventoryStmt->execute()) {
+            // Add an audit trail record for the product addition
+            $event_type = "Added Product";
+            $logDetails = "Added product: $item";
+            auditTrail($event_type, $logDetails);
+
+            $_SESSION['success'] = "Product Added successfully.";
+            header("Location: ../products/tbl_products.php");
+            exit();
+        } else {
+            $_SESSION['error'] = "Error adding product to inventory: " . $inventoryStmt->error;
+            $inventoryStmt->close();
+        }
     } else {
-        $_SESSION['error'] = "Error adding product: " . $stmt->error;
-        $stmt->close(); // Close the statement here in case of error
-        $con->close();
-        header("Location: ../products/addProduct.php");
-        exit();
+        $_SESSION['error'] = "Error adding product: " . $productStmt->error;
+        $productStmt->close();
     }
+
+    $con->close();
+    header("Location: ../products/addProduct.php");
+    exit();
 } else {
     $_SESSION['error'] = "Invalid request method.";
     header("Location: ../products/addProduct.php");

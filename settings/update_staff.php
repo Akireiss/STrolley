@@ -58,14 +58,24 @@ include '../includes/sidebar.php';
                         </div>
                     </div>
 
-                    <div class="col-md-6 position-relative">
+                    <!-- <div class="col-md-6 position-relative">
                         <label class="form-label">Email Address<font color="red">*</font></label>
                         <input type="email" class="form-control" id="validationTooltip01" name="email" required  value="<?php echo $email; ?>">
                         <div class="invalid-tooltip">
                             The Email Address field is required.
                         </div>
+                    </div> -->
+
+
+                    <div class="col-md-6 position-relative">
+                        <label class="form-label">Password<font color="red">*</font></label>
+                        <input type="password" class="form-control" id="validationTooltip02" name="password" required>
+                        <div class="invalid-tooltip">
+                            The Password field is required.
+                        </div>
                     </div>
 
+                    
                     <div class="col-md-6 position-relative">
                         <label class="form-label">Phone Number (Format: 09XXXXXXXXX)<font color="red">*</font></label>
                         <input type="text" class="form-control" id="validationTooltip01" name="phone_number" maxlength="11" required  value="<?php echo $phone_number; ?>">
@@ -81,7 +91,6 @@ include '../includes/sidebar.php';
                                 <option value="" selected disabled>Select User Type</option>
                                 <option value="Admin" <?php echo ($user_type == 'Admin') ? 'selected' : ''; ?>>Administrator</option>
                                 <option value="Staff" <?php echo ($user_type == 'Staff') ? 'selected' : ''; ?>>Staff</option>
-                                <option value="Brgy. Secretary" <?php echo ($user_type == 'Brgy. Secretary') ? 'selected' : ''; ?>>Brgy. Secretary</option>
                             </select>
                             <div class="invalid-tooltip">
                                 The User Type field is required.

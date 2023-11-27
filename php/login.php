@@ -1,4 +1,6 @@
 <?php
+// login.php
+
 // Start the session
 session_start();
 
@@ -30,16 +32,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($result->num_rows > 0) {
         // Authentication successful
-        session_start(); // Start the session
-        $_SESSION['username'] = $username;
-        
-        // Retrieve the user_type from your user data (You should adjust this based on your database schema)
         $user_data = $result->fetch_assoc();
-        $user_type = $user_data['user_type']; // Adjust the field name as per your database schema
+        $name = $user_data['name']; // Replace 'name' with the actual field name for the user's name
+        $_SESSION['name'] = $name; // Store the user's name in the session
         
+        $user_type = $user_data['user_type']; // Retrieve the user_type from your user data
         $_SESSION['user_type'] = $user_type; // Store user information in the session
 
         // Audit Trail Code
+        date_default_timezone_set('Asia/Manila');
         $timestamp = date("Y-m-d H:i:s");
         $action = "User login";
 
@@ -71,10 +72,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     } else {
         // Authentication failed, display an error message
-        $_SESSION['message'] = "Incorrect username or password. Please try again.";
+        $_SESSION['error'] = "Incorrect username or password!";
         header("Location: ../index.php");
+        exit;
     }
 }
-
-// Include the HTML part of the code
 ?>

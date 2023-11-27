@@ -22,31 +22,22 @@
         </a>
       </li>
 
-     <li class="nav-item">
-        <a class="nav-link collapsed" style="background-color: white;" data-bs-target="#billing-nav" data-bs-toggle="collapse" href="#">
-          <i class="bi bi-cash"></i><span>Billing</span><i class="bi bi-chevron-down ms-auto"></i>
+     <!-- <li class="nav-item">
+        <a class="nav-link collapsed" style="background-color: white;" href="../billing/main_bill.php">
+          <i class="bi bi-cash"></i>
+          <span>Billing</span>
         </a>
-        <ul id="billing-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-          <li>
-            <a href="components-alerts.html" class="nav-item nav-link">
-              <i class="bi bi-circle"></i><span>Add Billing</span>
-            </a>
-          </li>
-          <li>
-            <a href="components-accordion.html" class="nav-item nav-link">
-              <i class="bi bi-circle"></i><span>View Billing</span>
-            </a>
-          </li>
-          <li>
-            <a href="components-badges.html" class="nav-item nav-link">
-              <i class="bi bi-circle"></i><span>Edit Billing</span>
-            </a>
-          </li>
-        </ul>
+      </li> -->
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" style="background-color: white;" href="../billing/transaction.php">
+          <i class="bi bi-arrow-left-right"></i>
+          <span>Transactions</span>
+        </a>
       </li>
 
       <li class="nav-item">
-        <a class="nav-link collapsed" style="background-color: white;" href="users-profile.html">
+        <a class="nav-link collapsed" style="background-color: white;" href="../loadManagement/loadMoney.php">
           <i class="bi bi-credit-card"></i>
           <span>Load Management</span>
         </a>
@@ -55,12 +46,12 @@
        <li class="nav-heading">...</li>   <!--Ikaw bahala kung ano ilalagay mo dito -->
 
       <li class="nav-item">
-        <a class="nav-link collapsed" style="background-color: white;" data-bs-target="#reports-nav" data-bs-toggle="collapse" href="#">
+        <a class="nav-link collapsed" style="background-color: white;" data-bs-target="#reports-nav" data-bs-toggle="collapse" href="" >
           <i class="bi bi-menu-button-wide"></i><span>Reports</span><i class="bi bi-chevron-down ms-auto"></i>
         </a>
         <ul id="reports-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
           <li>
-            <a href="components-alerts.html" class="nav-item nav-link">
+            <a href="../reports/viewInventory.php" class="nav-item nav-link">
               <i class="bi bi-circle"></i><span>View Inventory</span>
             </a>
           </li>
@@ -78,7 +69,7 @@
       </li>
 
       <li class="nav-item">
-        <a class="nav-link collapsed" style="background-color: white;" data-bs-target="#settings-nav" data-bs-toggle="collapse" href="#">
+        <a class="nav-link collapsed" style="background-color: white;" data-bs-target="#settings-nav" data-bs-toggle="collapse" href="" >
           <i class="bi bi-gear"></i><span>Settings</span><i class="bi bi-chevron-down ms-auto"></i>
         </a>
         <ul id="settings-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
@@ -88,7 +79,7 @@
             </a>
           </li>
           <li>
-            <a href="components-badges.html" class="nav-item nav-link">
+            <a href="../admin/mysqldump.php" class="nav-item nav-link">
               <i class="bi bi-circle"></i><span>System Backup</span>
             </a>
           </li>

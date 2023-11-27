@@ -37,7 +37,7 @@
 
         a {
             text-decoration: none;
-            background-color: #007bff;
+            background-color: orange;
             color: #fff;
             padding: 10px 20px;
             border-radius: 5px;
@@ -45,7 +45,7 @@
         }
 
         a:hover {
-            background-color: #0056b3;
+            background-color: orange;
         }
     </style>
 </head>

@@ -1,15 +1,14 @@
 <?php
-// Start the session
 session_start();
 
 include_once('../db_conn.php');
+
 // Check if the user is logged in
 if (!isset($_SESSION['user_type'])) {
     // User is not logged in, redirect to the login page
     header("Location: ../index.php"); // Adjust the path to your login page
     exit;
 }
-
 
 // Modify the SQL query to include JOIN operations
 $sql = "SELECT c.id, 
@@ -25,20 +24,68 @@ $sql = "SELECT c.id,
 // Execute the SQL query
 $result = $con->query($sql);
 
-// Check if any users are found
-
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
 ?>
+
+<style>
+    #myTable th,
+    #myTable td {
+        text-align: center;
+    }
+
+    table.table {
+        border-collapse: collapse;
+        width: 100%;
+        background-color: #fff;
+    }
+
+    table.table th {
+        padding: 12px;
+        border: 1px solid #e0e0e0;
+        font-size: 14px; /* Adjust the font size as needed */
+    }
+
+    table.table th {
+        background-color: #f4f4f4;
+        font-weight: bold;
+    }
+
+    table.table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    table.table tr:hover {
+        background-color: #e0e0e0;
+    }
+
+    table.table img {
+        max-width: 100px;
+    }
+
+    table.table .btn {
+        margin: 3px;
+    }
+
+    /* Custom CSS for Edit button */
+    .edit-btn {
+        background-color: #007bff;
+        color: #fff;
+    }
+</style>
+
+
+
 <main id="main" class="main">
     <section class="section dashboard">
         <div class="row">
             <div class="card">
-                <div class="add-employee mb-3 mt-3">
-                    <a href="../customerRecords/addCustomer.php" class="btn btn-primary">
-                        <i class="bi bi-plus"></i>Add Customer
-                    </a>
+                <div class="add-customer mb-3 mt-3">
+                    <h1 class="page-header">List of Customers <a href="../customerRecords/addCustomer.php" class="btn btn-primary">
+                            <i class="bi bi-plus"></i> Add Customer
+                        </a>
+                    </h1>
                 </div>
                 <?php if (isset($_SESSION['success'])) { ?>
                     <div class="alert alert-success" role="alert">
@@ -52,10 +99,11 @@ include '../includes/sidebar.php';
                     </div>
                     <?php unset($_SESSION['error']); ?>
                 <?php } ?>
-                <table id="myTable" class="table datatable">
-                    <thead>
+                <div class="d-flex justify-content-between mb-3">
+                </div>
+                <table id="myTable" class="table  table-bordered table-hover">
+                    <thead class="thead-dark">
                         <tr>
-                            <th scope="col">ID</th>
                             <th scope="col">Name</th>
                             <th scope="col">Address</th>
                             <th scope="col">Sex</th>
@@ -64,15 +112,14 @@ include '../includes/sidebar.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($userrow = $result->fetch_assoc()) {
-                            $id = $userrow["id"];
-                            $fullname = $userrow["full_name"];
-                            $address = $userrow["address"];
-                            $sex = $userrow["sex"];
-                            $civil_status = $userrow["civil_status"];
+                        <?php while ($customer = $result->fetch_assoc()) {
+                            $id = $customer["id"];
+                            $fullname = $customer["full_name"];
+                            $address = $customer["address"];
+                            $sex = $customer["sex"];
+                            $civil_status = $customer["civil_status"];
                         ?>
                             <tr>
-                                <td><?php echo $id; ?></td>
                                 <td><?php echo $fullname; ?></td>
                                 <td><?php echo $address; ?></td>
                                 <td><?php echo $sex; ?></td>
@@ -80,10 +127,13 @@ include '../includes/sidebar.php';
                                 <td>
                                     <div class="d-flex justify-content-center">
                                         <a href="../customerRecords/view.php?id=<?php echo $id; ?>" class="btn btn-sm btn-primary view-btn m-1" data-id="<?php echo $id; ?>">
-                                            <i class="bx bx-show-alt"></i>
+                                            <i class="bi bi-gear"></i> Generate
                                         </a>
-                                        <a href="../customerRecords/update.php?id=<?php echo $id; ?>" class="btn btn-sm btn-info update-btn m-1" data-id="<?php echo $id; ?>">
-                                            <i class="bi bi-pencil-square"></i>
+                                        <a href="../customerRecords/show.php?id=<?php echo $id; ?>" class="btn btn-sm btn-primary view-btn m-1" data-id="<?php echo $id; ?>">
+                                            <i class="bx bx-show-alt"></i> View
+                                        </a>
+                                        <a href="../customerRecords/update.php?id=<?php echo $id; ?>" class="btn btn-sm btn-info edit-btn m-1" data-id="<?php echo $id; ?>">
+                                            <i class="bi bi-pencil-square"></i> Edit
                                         </a>
                                     </div>
                                 </td>
@@ -91,15 +141,9 @@ include '../includes/sidebar.php';
                         <?php } ?>
                     </tbody>
                 </table>
-                <style>
-                    #myTable th,
-                    #myTable td {
-                        text-align: center;
-                    }
-                </style>
                 <script src="../assets/vendor/simple-datatables/simple-datatables.js"></script>
                 <script>
-                    document.addEventListener("DOMContentLoaded", function() {
+                    document.addEventListener("DOMContentLoaded", function () {
                         new simpleDatatables.DataTable("#myTable");
                     });
                 </script>
