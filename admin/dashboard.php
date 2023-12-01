@@ -256,7 +256,7 @@ include '../includes/sidebar.php';
 
 
 
-                    <div class="col-6">
+                    <div class="col-5">
     <div class="card">
         <div class="filter">
             <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -410,7 +410,7 @@ include '../includes/sidebar.php';
 
 
 
-                    <div class="col-6">
+                    <div class="col-4">
                         <div class="card top-selling overflow-auto">
                             <!-- <div class="filter">
             <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -476,6 +476,85 @@ include '../includes/sidebar.php';
                                                 echo '</tr>';
                                             }
 
+                                            // Close the result set
+                                            $result->close();
+                                        } else {
+                                            echo "Query failed: " . $mysqli->error;
+                                        }
+
+                                        // Close the database connection
+                                        $mysqli->close();
+                                        ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-3">
+                        <div class="card top-selling overflow-auto">
+                            <!-- <div class="filter">
+            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                    <h6>Filter</h6>
+                </li>
+                <li><a class="dropdown-item" href="#">Today</a></li>
+                <li><a class="dropdown-item" href="#">This Month</a></li>
+                <li><a class="dropdown-item" href="#">This Year</a></li>
+            </ul>
+        </div> -->
+                            <div class="card-body pb-0">
+                                <h5 class="card-title">Top Buyers</h5>
+                                <table class="table table-striped table-bordered">
+                                    <thead>
+                                        <!-- <tr>
+                        <th scope="col">Image</th> -->
+                                        <th scope="col">Customer Name</th>
+                                        <!-- <th scope="col">Price</th>
+                                        <th scope="col">Sold</th> -->
+                                        <!-- <th scope="col">Revenue</th> -->
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        // Database connection configuration
+                                        $host = "localhost";
+                                        $username = "root";
+                                        $password = "";
+                                        $database = "strolley";
+
+                                        // Create a database connection
+                                        $mysqli = new mysqli($host, $username, $password, $database);
+
+                                        // Check if the connection was successful
+                                        if ($mysqli->connect_error) {
+                                            die("Connection failed: " . $mysqli->connect_error);
+                                        }
+
+                                        $query = "
+                                        SELECT CONCAT(c.first_name, ' ', c.last_name) AS CustomerName, 
+                                               COUNT(t.id) AS TotalTransactions, 
+                                               SUM(t.t_amount) AS TotalAmount
+                                        FROM transaction t
+                                        LEFT JOIN customer c ON t.customer_id = c.id
+                                        GROUP BY t.customer_id
+                                        ORDER BY TotalAmount DESC
+                                        LIMIT 10; -- You can adjust the limit as needed to get the top N buyers
+                                    ";
+
+                                        // Execute the query
+                                        $result = $mysqli->query($query);
+
+                                        // Check if the query was successful
+                                        if ($result) {
+                                            while ($row = $result->fetch_assoc()) {
+                                                echo '<tr>';
+                                                echo '<td>' . $row['CustomerName'] . '</td>';
+                                                // echo '<td>' . $row['TotalTransactions'] . '</td>';
+                                                // echo '<td>' . $row['TotalAmount'] . '</td>';
+                                                echo '</tr>';
+                                            }
                                             // Close the result set
                                             $result->close();
                                         } else {

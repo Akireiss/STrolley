@@ -119,7 +119,7 @@
 <body>
     <div class="container">
         <div class="image-container">
-            <img src="assets/img/backk.jpg" alt="Background Image">
+            <img src="assets/img/quick.jpg" alt="Background Image">
         </div>
         <div class="login-container">
             <div class="logo">
