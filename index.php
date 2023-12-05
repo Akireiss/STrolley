@@ -122,10 +122,10 @@
             <img src="assets/img/quick.jpg" alt="Background Image">
         </div>
         <div class="login-container">
-            <div class="logo">
+            <div class="logo" style="margin-top: 30px;">
                 <img src="assets/img/DMMMSU.png" alt="Logo">
             </div>
-            <h2>Admin Login</h2>
+            <h2 style="margin-top: -20px;">Admin Login</h2>
 
             <form action="php/login.php" method="POST">
             <?php
