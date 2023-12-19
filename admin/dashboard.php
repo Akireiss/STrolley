@@ -290,119 +290,151 @@ include '../includes/sidebar.php';
                 $historicalData[] = $row;
             }
             ?>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const historicalData = <?php echo json_encode($historicalData); ?>;
+        const totalSales = historicalData.map(entry => entry.totalSales);
 
-            <script>
-                document.addEventListener("DOMContentLoaded", () => {
-                    const historicalData = <?php echo json_encode($historicalData); ?>;
-                    const dates = historicalData.map(entry => entry.date);
-                    const totalSales = historicalData.map(entry => entry.totalSales);
+        const chart = new ApexCharts(document.querySelector("#reportsChart"), {
+            series: [{
+                name: 'Sales',
+                data: totalSales,
+            }],
+            chart: {
+                height: 310,
+                type: 'area',
+                toolbar: {
+                    show: false
+                },
+            },
+            markers: {
+                size: 4
+            },
+            colors: ['#4154f1'],
+            fill: {
+                type: "gradient",
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.3,
+                    opacityTo: 0.4,
+                    stops: [0, 90, 100]
+                }
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 2
+            },
+            xaxis: {
+                type: 'datetime',
+                categories: historicalData.map(entry => entry.date),
+            },
+            tooltip: {
+                x: {
+                    format: 'dd/MM/yy',
+                },
+                y: [{
+                    formatter: function (value) {
+                        return "Sales: ₱" + value;
+                    },
+                }],
+            }
+        });
 
-                    const chart = new ApexCharts(document.querySelector("#reportsChart"), {
-                        series: [{
-                            name: 'Sales',
-                            data: totalSales,
-                        }],
-                        chart: {
-                            height: 310,
-                            type: 'area',
-                            toolbar: {
-                                show: false
-                            },
-                        },
-                        markers: {
-                            size: 4
-                        },
-                        colors: ['#4154f1'],
-                        fill: {
-                            type: "gradient",
-                            gradient: {
-                                shadeIntensity: 1,
-                                opacityFrom: 0.3,
-                                opacityTo: 0.4,
-                                stops: [0, 90, 100]
-                            }
-                        },
-                        dataLabels: {
-                            enabled: false
-                        },
-                        stroke: {
-                            curve: 'smooth',
-                            width: 2
-                        },
-                        xaxis: {
-                            type: 'datetime',
-                            categories: dates,
-                        },
-                        tooltip: {
-                            x: {
-                                format: 'dd/MM/yy',
-                            },
-                            y: [{
-                                formatter: function (value) {
-                                    return "Sales: ₱" + value;
-                                },
-                            }],
-                        }
-                    });
+        // Initial rendering of the chart
+        chart.render();
 
-                    // Initial rendering of the chart
-                    chart.render();
+        // Function to update the chart based on the selected filter
+        function updateChart(selectedFilter) {
+            let filteredData;
+            let filteredTotalSales;
 
-                    // Function to update the chart based on the selected filter
-                    function updateChart(selectedFilter) {
-                        let filteredData;
-                        let filteredDates;
-                        let filteredTotalSales;
+            // Implement logic to filter data based on the selected filter
+            if (selectedFilter === "today") {
+                // Filter data for today and display per day
+                const currentDate = new Date().toISOString().slice(0, 10);
+                filteredData = historicalData.filter(entry => entry.date === currentDate);
 
-                        // Implement logic to filter data based on the selected filter
-                        if (selectedFilter === "today") {
-                            // Filter data for today
-                            filteredData = historicalData.filter(entry => entry.date === new Date().toISOString().slice(0, 10));
-                        } else if (selectedFilter === "thisMonth") {
-                            // Filter data for this month
-                            const currentDate = new Date();
-                            const currentMonth = currentDate.getMonth() + 1; // months are 0-indexed
-                            filteredData = historicalData.filter(entry => {
-                                const entryDate = new Date(entry.date);
-                                return entryDate.getMonth() + 1 === currentMonth && entryDate.getFullYear() === currentDate.getFullYear();
-                            });
-                        } else if (selectedFilter === "thisYear") {
-                            // Filter data for this year
-                            const currentYear = new Date().getFullYear();
-                            filteredData = historicalData.filter(entry => new Date(entry.date).getFullYear() === currentYear);
-                        } else {
-                            // No filter selected, use the original data
-                            filteredData = historicalData;
-                        }
-
-                        // Extract filtered data
-                        filteredDates = filteredData.map(entry => entry.date);
-                        filteredTotalSales = filteredData.map(entry => entry.totalSales);
-
-                        // Update the chart series and x-axis categories
-                        chart.updateSeries([{
-                            name: 'Sales',
-                            data: filteredTotalSales,
-                        }]);
-
-                        chart.updateOptions({
-                            xaxis: {
-                                categories: filteredDates,
-                            }
-                        });
+                // Update x-axis labels to display actual dates for "Today" filter
+                chart.updateOptions({
+                    xaxis: {
+                        type: 'datetime',
+                        categories: filteredData.map(entry => entry.date),
                     }
-
-                    // Add event listeners to filter options
-                    const filterOptions = document.querySelectorAll(".filter-option");
-                    filterOptions.forEach(option => {
-                        option.addEventListener("click", function (e) {
-                            e.preventDefault();
-                            const selectedFilter = this.getAttribute("data-filter");
-                            updateChart(selectedFilter);
-                        });
-                    });
                 });
-            </script>
+            } else if (selectedFilter === "thisMonth") {
+                // Filter data for this month and display fixed labels "Week 1" to "Week 4"
+                const currentDate = new Date();
+                const currentMonth = currentDate.getMonth() + 1; // months are 0-indexed
+                const currentYear = currentDate.getFullYear();
+
+                filteredData = historicalData.filter(entry => {
+                    const entryDate = new Date(entry.date);
+                    return entryDate.getMonth() + 1 === currentMonth && entryDate.getFullYear() === currentYear;
+                });
+
+                // Aggregate data per week
+                const aggregatedData = {};
+                filteredData.forEach((entry, index) => {
+                    const weekNumber = index + 1;
+                    if (!aggregatedData[weekNumber]) {
+                        aggregatedData[weekNumber] = {
+                            totalSales: entry.totalSales,
+                        };
+                    } else {
+                        aggregatedData[weekNumber].totalSales += entry.totalSales;
+                    }
+                });
+
+                // Convert aggregated data to arrays
+                filteredTotalSales = Object.keys(aggregatedData).map(weekNumber => aggregatedData[weekNumber].totalSales);
+
+                // Update x-axis labels to display fixed labels "Week 1" to "Week 4"
+                chart.updateOptions({
+                    xaxis: {
+                        type: 'category',
+                        categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    }
+                });
+            } else {
+                // No filter selected or "This Year" filter, use the original data and x-axis type
+                filteredData = historicalData;
+
+                // For non-"Today" and non-"This Month" filters, update x-axis labels to display actual dates
+                chart.updateOptions({
+                    xaxis: {
+                        type: 'datetime',
+                        categories: filteredData.map(entry => entry.date),
+                    }
+                });
+            }
+
+            // Update the chart series
+            chart.updateSeries([{
+                name: 'Sales',
+                data: filteredTotalSales || filteredData.map(entry => entry.totalSales),
+            }]);
+        }
+
+        // Add event listeners to filter options
+        const filterOptions = document.querySelectorAll(".filter-option");
+        filterOptions.forEach(option => {
+            option.addEventListener("click", function (e) {
+                e.preventDefault();
+                const selectedFilter = this.getAttribute("data-filter");
+                updateChart(selectedFilter);
+            });
+        });
+    });
+</script>
+
+
+
+
+
+
             <!-- End Line Chart -->
         </div>
     </div>

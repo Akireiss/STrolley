@@ -28,15 +28,17 @@
         }
 
         .image-container {
-            flex: 1;
-            overflow: hidden;
-        }
+        flex: 1;
+        overflow: hidden;
+        display: flex; /* Ensures the image takes full height */
+        justify-content: center; /* Centers the image horizontally */
+        align-items: center; /* Centers the image vertically */
+    }
 
-        .image-container img {
-            width: 97%;
-            height: 100%;
-            /* object-fit: cover; */
-        }
+    .image-container img {
+        height: 100%; /* Adjust the height to fill the container */
+        object-fit: contain; /* Maintains aspect ratio without stretching */
+    }
 
         .login-container {
             flex: 1;
@@ -119,13 +121,13 @@
 <body>
     <div class="container">
         <div class="image-container">
-            <img src="assets/img/quick.jpg" alt="Background Image">
+            <img src="assets/img/shop.jpg" alt="Background Image">
         </div>
         <div class="login-container">
-            <div class="logo" style="margin-top: 30px;">
+            <div class="logo" style="margin-top: 0px;">
                 <img src="assets/img/DMMMSU.png" alt="Logo">
             </div>
-            <h2 style="margin-top: -20px;">Admin Login</h2>
+            <h2 style="margin-top: -20px;">Smart Shopping Trolley for DMMMSU NLUC Multi Purpose Hall</h2>
 
             <form action="php/login.php" method="POST">
             <?php
